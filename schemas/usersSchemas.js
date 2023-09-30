@@ -6,6 +6,12 @@ const singupSchema = Joi.object({
   password: Joi.string().min(8).required(),
 });
 
+const loginSchema = Joi.object({
+  email: Joi.string().email().required(),
+  password: Joi.string().min(8).required(),
+});
+
 module.exports = {
   singupSchema,
+  loginSchema,
 };

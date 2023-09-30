@@ -12,7 +12,11 @@ const userShema = new Schema(
 );
 
 userShema.methods.hashPassword = async function (password) {
-  this.password = await bcrypt.hash(password,10);
+  this.password = await bcrypt.hash(password, 10);
+};
+
+userShema.methods.verifyPassword = async function (password) {
+  return await bcrypt.compare(password, this.password);
 };
 
 const User = model("user", userShema);

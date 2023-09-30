@@ -24,6 +24,43 @@ const signup = async (req, res) => {
   res.status(201).json({ token, user: { name, email } });
 };
 
+const login = async (req, res) => {
+  const { email, password } = req.body;
+  const user = await User.findOne({ email });
+  console.log(user);
+
+  if (!user) {
+    res.status(401).json({ message: "Email or password is wrong" });
+    return;
+  }
+  const result = await user.verifyPassword(password);
+  if (!result) {
+    res.status(401).json({ message: "Email or password is wrong" });
+    return;
+  }
+  const payload = {
+    id: user._id,
+  };
+  const token = jwt.sign(payload, SECRET_KEY, { expiresIn: "23h" });
+  await User.findByIdAndUpdate(user._id, { token });
+
+  res.json({ token, user: { name: user.name, email } });
+};
+
+const logout = async (req, res) => {
+  const { _id } = req.user;
+  await User.findByIdAndUpdate(_id, { token: "" });
+  res.sendStatus(204);
+};
+
+const getCurrent = (req, res) => {
+  const { name, email } = req.user;
+  res.json({ name, email });
+};
+
 module.exports = {
   signup,
+  login,
+  logout,
+  getCurrent,
 };
