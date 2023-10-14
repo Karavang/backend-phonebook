@@ -1,6 +1,11 @@
-const User = require("../db/models/userModel");
-const { SECRET_KEY } = process.env;
 const jwt = require("jsonwebtoken");
+const path = require("path");
+const fs = require("fs/promises");
+const gavatar = require("gravatar");
+
+const User = require("../db/models/userModel");
+
+const { SECRET_KEY } = process.env;
 
 const signup = async (req, res) => {
   const { name, email, password } = req.body;
@@ -9,8 +14,8 @@ const signup = async (req, res) => {
     res.status(409).json({ message: "Email in use" });
     return;
   }
-
-  const newUser = new User({ name, email, password });
+  const avatar = gavatar.url(email);
+  const newUser = new User({ name, email, password, avatar });
   await newUser.hashPassword(password);
   await newUser.save();
 
@@ -44,7 +49,7 @@ const login = async (req, res) => {
   const token = jwt.sign(payload, SECRET_KEY, { expiresIn: "23h" });
   await User.findByIdAndUpdate(user._id, { token });
 
-  res.json({ token, user: { name: user.name, email } });
+  res.json({ token, user: { name: user.name, email, avatar: user.avatar } });
 };
 
 const logout = async (req, res) => {
@@ -54,8 +59,25 @@ const logout = async (req, res) => {
 };
 
 const getCurrent = (req, res) => {
-  const { name, email } = req.user;
-  res.json({ name, email });
+  const { name, email, avatar } = req.user;
+  res.json({ name, email, avatar });
+};
+
+const updateAvatar = async (req, res, next) => {
+  const avatarsDir = path.join(__dirname, "../", "public", "avatars");
+  const { _id } = req.user;
+  const { path: tempUpload, originalname } = req.file;
+  const filename = `${_id}_${originalname}`;
+  const resultUpload = path.join(avatarsDir, filename);
+  try {
+    await fs.rename(tempUpload, resultUpload);
+  } catch (error) {
+    fs.unlink(tempUpload);
+    next(error);
+  }
+  const avatar = path.join("avatars", filename);
+  await User.findByIdAndUpdate(_id, { avatar });
+  res.json({ avatar });
 };
 
 module.exports = {
@@ -63,4 +85,5 @@ module.exports = {
   login,
   logout,
   getCurrent,
+  updateAvatar,
 };

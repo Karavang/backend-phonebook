@@ -7,6 +7,7 @@ const userShema = new Schema(
     email: { type: String, reqired: [true, "put your number"] },
     password: { type: String, reqired: [true, "put your number"] },
     token: { type: String, default: "" },
+    avatar: String,
   },
   { versionKey: false }
 );
