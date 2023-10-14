@@ -26,7 +26,7 @@ const signup = async (req, res) => {
   const token = jwt.sign(payload, SECRET_KEY, { expiresIn: "23h" });
   await User.findByIdAndUpdate(newUser._id, { token });
 
-  res.status(201).json({ token, user: { name, email } });
+  res.status(201).json({ token, user: { name, email, avatar } });
 };
 
 const login = async (req, res) => {

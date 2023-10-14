@@ -1,4 +1,3 @@
-
 const {
   getContactService,
   postContactService,
@@ -31,6 +30,10 @@ const deleteContact = async (req, res) => {
 
 const editContact = async (req, res) => {
   const { contactId } = req.params;
+  if (!contactId) {
+    res.status(400).json({ message: "СontactId is absent" });
+    return;
+  }
   const data = req.body;
   const result = await editContactsService(contactId, data);
   if (!result) {
